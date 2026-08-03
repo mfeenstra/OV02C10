@@ -1,0 +1,7 @@
+# Hide the raw Intel IPU6 ISYS capture nodes (/dev/video0-47) from regular
+# users. Only the root-owned v4l2-relayd/CamHAL pipeline needs them; user apps
+# (Chromium/Electron: Hyperbeam, Discord, browsers) otherwise enumerate 48
+# dead cameras and usually default to the first one.
+# Must sort after 70-uaccess.rules (which adds TAG "uaccess") and before
+# 73-seat-late.rules (which turns that tag into a per-user ACL).
+SUBSYSTEM=="video4linux", ATTR{name}=="Intel IPU6 ISYS Capture*", GROUP="root", MODE="0600", TAG-="uaccess"
