@@ -1,0 +1,9 @@
+KERNEL=="video0", SUBSYSTEM=="video4linux", ATTR{name}=="IPU6 Virtual Camera", GROUP="video", MODE="0660"
+KERNEL=="video99", SUBSYSTEM=="video4linux", ATTR{name}=="IPU6 Camera Buffer", GROUP="root", MODE="0600"
+SUBSYSTEM=="dma_heap", GROUP="video", MODE="0660"
+
+# zero-copy permissions
+KERNEL=="udmabuf", TAG+="uaccess"
+
+# explicit binding workaround
+ACTION=="add", SUBSYSTEM=="i2c", ATTR{name}=="OVTI02C1:00", RUN+="/bin/sh -c 'echo i2c-OVTI02C1:00 > /sys/bus/i2c/drivers/ov02c10/bind'"

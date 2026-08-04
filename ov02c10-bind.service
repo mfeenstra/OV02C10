@@ -1,0 +1,25 @@
+[Unit]
+Description=Bind OV02C10 MIPI camera sensor to its i2c driver at boot
+Documentation=file:///home/jacob/projects/OVTI02C1/CLAUDE.md
+# The ov02c10 sensor probe races the usbio-bridge (Lattice IVSC 2ac1:20c9) I2C
+# proxy at boot and fails with EREMOTEIO, which the kernel never retries via
+# deferred probe, so the sensor stays unbound and CamHAL later aborts in
+# parseLinkElement (std::invalid_argument: stoi). We bind it explicitly.
+#
+# This MUST run in the host mount namespace. The relay's own ExecStartPre cannot:
+# v4l2-relayd@.service ships `ReadOnlyDirectories=/etc /sys` (-> ReadOnlyPaths),
+# so writing /sys/bus/i2c/drivers/ov02c10/bind from inside that unit fails with
+# EROFS on every attempt -- which is exactly why the old prestart.conf bind was a
+# silent no-op and the camera "regressed" on every reboot that lost the probe race.
+Before=v4l2-relayd@intel-ipu.service
+ConditionPathExists=/sys/bus/i2c/drivers/ov02c10
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Poll up to 30s for the USB I2C bridge to settle, then bind. Idempotent: exits 0
+# as soon as the sensor's i2c client is linked under the driver.
+ExecStart=/bin/sh -c 'for i in $(seq 1 30); do [ -L /sys/bus/i2c/drivers/ov02c10/i2c-OVTI02C1:00 ] && exit 0; echo i2c-OVTI02C1:00 > /sys/bus/i2c/drivers/ov02c10/bind 2>/dev/null; sleep 1; done; [ -L /sys/bus/i2c/drivers/ov02c10/i2c-OVTI02C1:00 ]'
+
+[Install]
+WantedBy=multi-user.target
