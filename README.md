@@ -96,6 +96,9 @@ For Arch Linux, packages are available in the official repos and AUR:
 * **`intel-ipu6-dkms-git`**: Main kernel driver modules for Intel IPU6.
 * **`intel-ipu6-camera-bin`**: Proprietary firmware files and calibration binaries.
 * **`intel-ipu6-camera-hal-git`**: Camera Hardware Abstraction Layer (`libcamhal`).
+  - For unused variable compile errors, add the following to your `PKGBUILD` `build()` block: `sed -i 's/-Werror//g' $_pkgname/CMakeLists.txt`
+* **`libcamera-ipu6`**: Linux support library for complex cameras and the Intel IPU6 pipeline.
+  - For install failure related to post-build testing of `v4l2_compat`, append `| grep -v v4l2_comat` to the `PKGBUILD` `check()` block's `tests=` expression.
 * **`icamerasrc-git`**: GStreamer source plugin to interface with `libcamhal`.
 * **`v4l2loopback-dkms`**: Kernel module for virtual loopback devices.
 * **`v4l2-relayd`**: Daemon to pipe GStreamer frames into loopback.
